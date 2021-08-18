@@ -12,14 +12,24 @@ defaults: &defaults
 #   destroy-environment:
 #     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
 #     parameters:
-#       # Add parameter here   
+#       workflow-id:
+#         type: string
+#         default: ${CIRCLE_WORKFLOW_ID}
+
+      
 #     steps:
+#       - run:
+#           name: Delete S3 
+#           when: on_fail
+#           command: |
+#              aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID} --force
+
 #       - run:
 #           name: Destroy environments
 #           when: on_fail
 #           command: |
-#             # Your code here
-#             exit 1
+#             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID} 
+#             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID} 
 
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
@@ -130,49 +140,49 @@ jobs:
             npm audit fix --audit-level=critical --force
 
 
-#   deploy-infrastructure:
-#     docker:
-#       - image: amazon/aws-cli:latest
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
 
-#     steps:
-#       - checkout
-#       - run:
-#           name: Ensure back-end infrastructure exists
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/backend.yml \
-#               --tags project=udapeople-backend \
-#                --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID} \
-#                --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}  
-#       - run:
-#           name: Ensure front-end infrastructure exist
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/frontend.yml \
-#               #--tags project=udapeople-frontend \
-#               # --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID} \
-#               # --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}  
-#       - run:
-#           name: Add back-end ip to ansible inventory
-#           command: |   
-#             cd .circleci/ansible            
-#             aws ec2 describe-instances \
-#               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-#               --filters "Name=tag:Name,Values=backend-*" \
-#               --output text >> inventory.txt
-#             BACKEND_INSTANCE_IP=$(aws ec2 describe-instances \
-#               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-#               --filters "Name=tag:Name,Values=backend-*" \
-#               --output text)
-#             echo $BACKEND_INSTANCE_IP
-#             curl -H "Content-Type: text/plain" \
-#               -H "token: 27c524b6-60fd-488c-a39f-4cbea4dca7f0" \
-#               --request PUT --data "$BACKEND_INSTANCE_IP" https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID} 
+    steps:
+      - checkout
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople-backend \
+               --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID} \
+               --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}  
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              #--tags project=udapeople-frontend \
+              # --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID} \
+              # --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}  
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |   
+            cd .circleci/ansible            
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=backend-*" \
+              --output text >> inventory.txt
+            BACKEND_INSTANCE_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag:Name,Values=backend-*" \
+              --output text)
+            echo $BACKEND_INSTANCE_IP
+            curl -H "Content-Type: text/plain" \
+              -H "token: 27c524b6-60fd-488c-a39f-4cbea4dca7f0" \
+              --request PUT --data "$BACKEND_INSTANCE_IP" https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID} 
 
-#       - persist_to_workspace:
-#           root: ~/
-#           paths:
-#             - project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
 
 #   configure-infrastructure:
 #     docker:
@@ -359,11 +369,11 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #       branches:
-      #         only: [test-feature-branch]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [test-feature-branch]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations:
