@@ -225,7 +225,7 @@ jobs:
           name: Export env variables
           command: |
             touch backend/.env
-            echo NODE_ENV=$ENVIRONMENT >> "backend/.env"
+            echo NODE_ENV=$ENVIRONMENT > "backend/.env"
             echo VERSION=${CIRCLE_WORKFLOW_ID} >> "backend/.env"
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
