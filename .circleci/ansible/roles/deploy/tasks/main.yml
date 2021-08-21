@@ -1,0 +1,35 @@
+---
+  - name: Install dependencies
+    become: true
+    apt:
+      name: "tar"
+      state: latest
+      update_cache: yes
+
+  - name: "copy tar file "
+    become: true
+    copy:
+      src: /root/project/artifact.tar.gz
+      dest: /home/ubuntu/
+
+  - name: Unzip backend folder
+    become: true
+    shell: |
+      cd /home/ubuntu/
+      tar -xzvf artifact.tar.gz
+      ls -lha
+  - name: Install Node modules
+    become: true
+    shell: |
+      cd /home/ubuntu/backend
+      npm i
+  - name: Build backend
+    become: true
+    shell: |
+      cd /home/ubuntu/backend
+      npm run build
+  - name: Start pm2 service
+    become: true
+    shell: |
+      cd /home/ubuntu/backend
+      pm2 start npm --name backend -- start
