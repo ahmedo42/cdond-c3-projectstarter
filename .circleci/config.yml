@@ -39,7 +39,6 @@ commands:
       - run:
           name: Revert migrations
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = 1
             if(( $SUCCESS==1 )); 
             then
@@ -153,7 +152,7 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=udapeople-backend \
+              --tags project=backend-tag \
                --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID} \
                --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}
             URLS=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} --query "Reservations[*].Instances[*].PublicDnsName" --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID}" --output text)
@@ -164,7 +163,7 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=udapeople-frontend \
+              --tags project=frontend-tag \
               --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID} \
               --parameter-overrides ID=${CIRCLE_WORKFLOW_ID}  
       - run:
@@ -322,6 +321,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
+            export ANSIBLE_HOST_KEY_CHECKING=False 
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
   smoke-test:
