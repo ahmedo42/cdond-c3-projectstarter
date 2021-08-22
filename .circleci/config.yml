@@ -389,7 +389,7 @@ jobs:
               aws cloudformation update-stack \
               --use-previous-template \
               --stack-name cloudfront-stack \
-              --parameters ParameterKey=WorkflowID,ParameterValue=$CIRCLE_WORKFLOW_ID,UsePreviousValue=false \
+              --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID},UsePreviousValue=false \
               --tags project=udapeople
       - persist_to_workspace:
           root: ~/
