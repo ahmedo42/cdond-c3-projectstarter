@@ -38,6 +38,7 @@ commands:
     steps:
       - run:
           name: Revert migrations
+          when: on_fail
           command: |
             SUCCESS=$(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
@@ -337,7 +338,7 @@ jobs:
             else
               return 1
             fi
-            
+
       - revert-migrations
       - destroy-environment
 
