@@ -274,7 +274,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_IP= $(curl -H "Content-Type: text/plain" -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET  https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})     
+            BACKEND_IP= $(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET  https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo "API_URL=$API_URL" >> frontend/.env
