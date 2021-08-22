@@ -167,19 +167,11 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |   
-            cd .circleci/ansible            
-            aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=backend-*" \
-              --output text >> inventory.txt
-            BACKEND_INSTANCE_IP=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:Name,Values=backend-*" \
-              --output text)
-            echo $BACKEND_INSTANCE_IP
-            curl -H "Content-Type: text/plain" \
-              -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" \
-              --request PUT --data "$BACKEND_INSTANCE_IP" https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID} 
+            export backend_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
+              --filters "Name=tag:Name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID}" \
+              --output text >> .circleci/ansible/inventory.txt)
+            cat ./.circleci/ansible/inventory.txt
 
       - persist_to_workspace:
           root: ~/
@@ -276,13 +268,13 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
+            curl -sL https://rpm.nodesource.com/setup_lts.x | bash
             yum -y install tar gzip nodejs
           
       - run:
           name: Get backend url
           command: |
-            BACKEND_IP= $(curl -H "Content-Type: text/plain" -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request PUT --data "" https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})     
+            BACKEND_IP= $(curl -H "Content-Type: text/plain" -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET  https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})     
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo "API_URL=$API_URL" >> frontend/.env
@@ -343,7 +335,7 @@ jobs:
           name: Backend Smoke Test
           command: |
             BACKEND_URL=$(aws ec2 describe-instances \
-                  --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID}" \
+                  --filters "Name=tag:Name, Values=udapeople-backend-${CIRCLE_WORKFLOW_ID}" \
                   --query 'Reservations[*].Instances[*].PublicDnsName' \
                   --output text)
             echo ${BACKEND_URL}
