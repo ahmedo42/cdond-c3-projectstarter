@@ -202,18 +202,6 @@ jobs:
           name: Configure server
           no_output_timeout: 30m
           command: |
-              touch backend/.env
-              echo NODE_ENV=$ENVIRONMENT > "backend/.env"
-              echo VERSION=${CIRCLE_WORKFLOW_ID} >> "backend/.env"
-              echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-              echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-              echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-              echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-              echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-              echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-              echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-              echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-              echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
               cd .circleci/ansible/
               ansible-playbook -i inventory.txt configure-server.yml
 
@@ -248,7 +236,24 @@ jobs:
               curl -H "Content-Type: text/plain" -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             fi
             RESULT=$(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
-            echo "${RESULT}"        
+            echo "${RESULT}"
+      - run:
+          name: Adding .env data
+          command: |
+            touch backend/.env
+            echo NODE_ENV=$ENVIRONMENT >> "backend/.env"
+            echo VERSION=${CIRCLE_WORKFLOW_ID:0:7} >> "backend/.env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cd backend
+            cat .env    
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
@@ -300,6 +305,23 @@ jobs:
             apk add --no-cache openssh-client
             apk add --no-cache --upgrade bash
             pip install awscli
+      - run:
+          name: Adding .env data
+          command: |
+            touch backend/.env
+            echo NODE_ENV=$ENVIRONMENT >> "backend/.env"
+            echo VERSION=${CIRCLE_WORKFLOW_ID:0:7} >> "backend/.env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            cd backend
+            cat .env
       - run:
           name: zip backend
           command: |
