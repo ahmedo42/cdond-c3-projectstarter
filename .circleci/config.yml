@@ -1,6 +1,6 @@
 version: 2.1
 
-
+# this is a comment for distingushing the branches
 orbs:
   slack: circleci/slack@4.4.2
 
@@ -429,6 +429,8 @@ jobs:
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
+
 workflows:
   default:
     jobs:
