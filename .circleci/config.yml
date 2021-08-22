@@ -39,12 +39,13 @@ commands:
       - run:
           name: Revert migrations
           command: |
-            SUCCESS = 1
+            SUCCESS=$(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID})
             if(( $SUCCESS==1 )); 
             then
-              cd ~/project/backend
+              cd backend
               npm install
-              Add revert code here. You can find this in the Getting Started section.
+              npm run migrations:revert
+
             fi
             
 jobs:
@@ -336,9 +337,10 @@ jobs:
             else
               return 1
             fi
+            
       - revert-migrations
       - destroy-environment
-      
+
       - run:
           name: Backend Smoke Test
           command: |
