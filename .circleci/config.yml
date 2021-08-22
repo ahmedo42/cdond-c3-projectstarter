@@ -269,7 +269,11 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            BACKEND_IP= $(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET  https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+        
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
 
@@ -281,8 +285,6 @@ jobs:
             npm install
             npm run build
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID} --recursive
-      - destroy-environment
-      - revert-migrations
                     
   deploy-backend:
     docker:
@@ -300,14 +302,6 @@ jobs:
             apk add --no-cache openssh-client
             apk add --no-cache --upgrade bash
             pip install awscli
-      - run:
-          name: Setup Inventory file
-          command: |
-            cd .circleci/ansible
-            echo "[web]" >> inventory.txt
-            URLS=$(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})
-            echo $URLS >> inventory.txt
-            cat inventory.txt
       - run:
           name: zip backend
           command: |
