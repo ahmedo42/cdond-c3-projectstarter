@@ -384,13 +384,6 @@ jobs:
           command: |
             yum -y install tar gzip
       - run:
-          name: Retrieve previous stack workflow ID 
-          command: |
-            aws cloudformation \
-            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-            --region us-east-1 --no-paginate --output text >> ./.circleci/previousworkflowid.txt
-            cat ./.circleci/previousworkflowid.txt
-      - run:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
@@ -419,16 +412,15 @@ jobs:
       - run:
           name: Remove old stacks
           command: |
-            export OldWorkflowID=`cat ./.circleci/previousworkflowid.txt`
-            echo "${OldWorkflowID}"
-            export STACKS=$(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-            --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
-            echo "${STACKS}"
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            export OldWorkflowID=$(aws cloudformation \
+                list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                --no-paginate --output text)
+            echo Old Workflow Id: "${OldWorkflowID}"
+            echo Current Workflow Id: "${CIRCLE_WORKFLOW_ID}"
+            if [ "${OldWorkflowID}" != "${CIRCLE_WORKFLOW_ID}" ]
             then
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              aws s3 rb s3://udapeople-${OldWorkflowID} --force
+              aws cloudformation delete-stack --stack-name "the-old-stack"
             fi
 workflows:
   default:
