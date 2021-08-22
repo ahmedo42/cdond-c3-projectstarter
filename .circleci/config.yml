@@ -279,6 +279,7 @@ jobs:
             BACKEND_IP= $(curl -H "token: c1e0e2c0-9a4a-489d-86af-5472dcd4d249" --request GET  https://api.memstash.io/values/BACKEND_INSTANCE_IP_${CIRCLE_WORKFLOW_ID})
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
+            
             echo "API_URL=$API_URL" >> frontend/.env
       - run:
           name: Deploy frontend objects
@@ -338,7 +339,7 @@ jobs:
           name: Backend Smoke Test
           command: |
             BACKEND_URL=$(aws ec2 describe-instances \
-                  --filters "Name=tag:Name, Values=udapeople-backend-${CIRCLE_WORKFLOW_ID}" \
+                  --filters "Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID}" \
                   --query 'Reservations[*].Instances[*].PublicDnsName' \
                   --output text)
             echo ${BACKEND_URL}
